@@ -1226,6 +1226,38 @@
         }
       }
     },
+    "/api/storage/copy/pkm/bank": {
+      "put": {
+        "tags": [
+          "Storage"
+        ],
+        "operationId": "Storage_CopyPkmToBank",
+        "requestBody": {
+          "x-name": "input",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CopyPkmToBankActionInput"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/storage/dex/sync": {
       "put": {
         "tags": [
@@ -4354,7 +4386,8 @@
           "DATA_NORMALIZE",
           "UPDATE_EXTERNAL_PKM",
           "SET_PKM_VERSION_MAIN",
-          "MOVE_ITEM"
+          "MOVE_ITEM",
+          "COPY_PKM"
         ],
         "enum": [
           0,
@@ -4377,7 +4410,8 @@
           17,
           18,
           19,
-          20
+          20,
+          21
         ]
       },
       "WarningsDTO": {
@@ -5383,6 +5417,29 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "CopyPkmToBankActionInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "pkmIds",
+          "sourceSaveId",
+          "bankId"
+        ],
+        "properties": {
+          "pkmIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sourceSaveId": {
+            "type": "integer"
+          },
+          "bankId": {
+            "type": "string"
           }
         }
       },

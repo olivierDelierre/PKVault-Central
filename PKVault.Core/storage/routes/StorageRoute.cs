@@ -77,6 +77,17 @@ public class StorageController(DataService dataService, StorageQueryService stor
         return await dataService.CreateDataFromUpdateFlags(flags);
     }
 
+    /// <summary>
+    /// Copies Pokémon of a save to a bank. They stay in the save, which is not modified.
+    /// </summary>
+    [HttpPut("copy/pkm/bank")]
+    public async Task<DataDTO> CopyPkmToBank(CopyPkmToBankActionInput input)
+    {
+        var flags = await actionService.CopyPkmToBank(input);
+
+        return await dataService.CreateDataFromUpdateFlags(flags);
+    }
+
     [HttpPut("move/item")]
     public async Task<DataDTO> MoveItem(MoveItemActionInput input)
     {

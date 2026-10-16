@@ -55,6 +55,7 @@ namespace PKVault.Core;
 [JsonSerializable(typeof(MoveItemBankActionInput))]
 [JsonSerializable(typeof(MovePkmActionInput))]
 [JsonSerializable(typeof(MovePkmBankActionInput))]
+[JsonSerializable(typeof(CopyPkmToBankActionInput))]
 [JsonSerializable(typeof(SaveDeletePkmActionInput))]
 [JsonSerializable(typeof(SetPkmVariantMainActionInput))]
 [JsonSerializable(typeof(SortPkmActionInput))]

@@ -131,6 +131,17 @@ public class ActionService(
         );
     }
 
+    public async Task<DataUpdateFlags> CopyPkmToBank(CopyPkmToBankActionInput input)
+    {
+        using var scope = sp.CreateScope();
+
+        return await AddAction(
+            scope,
+            (scope) => scope.ServiceProvider.GetRequiredService<CopyPkmToBankAction>(),
+            input
+        );
+    }
+
     public async Task<DataUpdateFlags> MoveItem(MoveItemActionInput input)
     {
         using var scope = sp.CreateScope();

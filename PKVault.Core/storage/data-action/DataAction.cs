@@ -36,4 +36,5 @@ public enum DataActionType
     UPDATE_EXTERNAL_PKM,
     SET_PKM_VERSION_MAIN,
     MOVE_ITEM,
+    COPY_PKM,
 }

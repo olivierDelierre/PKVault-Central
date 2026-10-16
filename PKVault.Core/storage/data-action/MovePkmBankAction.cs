@@ -27,76 +27,11 @@ public class MovePkmBankAction(
             throw new ArgumentException($"External bank cannot be used as move target");
         }
 
-        var mainBoxes = (await boxLoader.GetEntitiesByBank(input.bankId)).Values
-            .Where(box => box.Type != BoxType.Inventory)
-            .OrderBy(box => box.Order).ToList();
-
-        var boxDict = new Dictionary<int, int[]>();
-        var boxesOccupationDict = (
-            await Task.WhenAll(mainBoxes.Select(async box => (
-                box.Id,
-                (await pkmVariantLoader.GetEntitiesByBox(box.Id))
-                    .Select(dict => dict.Key)   // boxSlot
-                    .ToHashSet()
-            )))
-        ).ToDictionary();
-        var boxesUnoccupationDict = new Dictionary<string, HashSet<int>>();
-
-        var availableSlotCount = 0;
-
-        foreach (var boxId in boxesOccupationDict.Keys)
-        {
-            var box = mainBoxes.First(box => box.Id == boxId);
-            HashSet<int> unoccupiedSlots = [];
-            for (int slot = 0; slot < box.SlotCount; slot++)
-            {
-                if (!boxesOccupationDict[boxId].Contains(slot))
-                {
-                    unoccupiedSlots.Add(slot);
-                    availableSlotCount++;
-                }
-            }
-            if (unoccupiedSlots.Count > 0)
-            {
-                boxesUnoccupationDict.Add(boxId, unoccupiedSlots);
-            }
-        }
-
-        if (availableSlotCount < input.pkmIds.Length)
-        {
-            var missingSlotCount = input.pkmIds.Length - availableSlotCount;
-            var boxSlotCount = new int[] { missingSlotCount, 30 }.Max();
-
-            var box = await mainCreateBoxAction.CreateBox(new(input.bankId, boxSlotCount));
-
-            HashSet<int> unoccupiedSlots = [];
-            for (int slot = 0; slot < box.SlotCount; slot++)
-            {
-                unoccupiedSlots.Add(slot);
-                availableSlotCount++;
-            }
-            if (unoccupiedSlots.Count > 0)
-            {
-                boxesUnoccupationDict.Add(box.Id, unoccupiedSlots);
-            }
-        }
-
-        var boxesDict = (await boxLoader.GetAllDtos())
-            .Where(p => p.Type != BoxType.Inventory)
-            .ToDictionary(p => p.Id);
+        var slots = await BankSlots.Allocate(boxLoader, pkmVariantLoader, mainCreateBoxAction, input.bankId, input.pkmIds.Length);
 
         async Task<DataActionPayload> act(string pkmId)
         {
-            var boxId = boxesUnoccupationDict.Keys.First();
-            var boxSlot = boxesUnoccupationDict[boxId].First();
-            boxesUnoccupationDict[boxId].Remove(boxSlot);
-            if (boxesUnoccupationDict[boxId].Count == 0)
-            {
-                boxesUnoccupationDict.Remove(boxId);
-            }
-
-            boxesDict.TryGetValue(boxId, out var targetBox);
-            ArgumentNullException.ThrowIfNull(targetBox);
+            var (targetBox, boxSlot) = slots.Take();
 
             if (input.sourceSaveId == null)
             {
