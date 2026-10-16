@@ -12,7 +12,6 @@ public interface ILocalSavesRefresher
     public Task<bool> TryRefresh();
 }
 
-[JsonConverter(typeof(JsonStringEnumConverter<TransferConflictResolution>))]
 /// <summary>
 /// Saves of the device which must not be written by anything but the transfer in progress.
 /// </summary>
@@ -21,6 +20,7 @@ public interface IDeviceSaveLock
     public bool IsLocked(string savePath);
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter<TransferConflictResolution>))]
 public enum TransferConflictResolution
 {
     /// <summary>Cancel on the server: the bank goes back to before the commit, the device save is not touched.</summary>

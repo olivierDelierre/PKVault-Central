@@ -138,7 +138,7 @@ public class ActionServiceTests
         Assert.Contains("mock-save-path", ex.Message);
         Assert.Contains("remote bank", ex.Message);
         // refused before anything was done: no backup, nothing persisted
-        Assert.False(mockFileSystem.AllFiles.Any(f => f.Contains("backup_before_save")));
+        Assert.DoesNotContain(mockFileSystem.AllFiles, f => f.Contains("backup_before_save"));
         mockSessionService.Verify(x => x.PersistSession(It.IsAny<IServiceScope>()), Times.Never);
     }
 
@@ -155,7 +155,7 @@ public class ActionServiceTests
 
         await actionService.Save();
 
-        Assert.True(mockFileSystem.AllFiles.Any(f => f.Contains("backup_before_save")));
+        Assert.Contains(mockFileSystem.AllFiles, f => f.Contains("backup_before_save"));
     }
 
     [Fact]

@@ -47,6 +47,24 @@ public class RemoteDeviceWiringTests
         session.Verify(x => x.StartNewSession(It.IsAny<bool>(), It.IsAny<DataUpdateFlags>()), Times.Never);
     }
 
+    // --- API contract
+
+    [Fact]
+    public void ApiEnums_ShouldBeText_NotNumbers()
+    {
+        // the generated client and the UI rely on these names: a number would still be accepted by
+        // the server, so nothing else would notice the contract changed
+        Assert.Equal("\"DISCARD\"", System.Text.Json.JsonSerializer.Serialize(
+            TransferConflictResolution.DISCARD, RouteJsonContext.Default.TransferConflictResolution
+        ));
+        Assert.Equal("\"OVERWRITE_DEVICE\"", System.Text.Json.JsonSerializer.Serialize(
+            TransferConflictResolution.OVERWRITE_DEVICE, RouteJsonContext.Default.TransferConflictResolution
+        ));
+        Assert.Equal("\"REMOTE\"", System.Text.Json.JsonSerializer.Serialize(
+            DeviceBankMode.REMOTE, RouteJsonContext.Default.DeviceBankMode
+        ));
+    }
+
     // --- registration
 
     private static ServiceCollection CreateServices(bool withRemoteDevice)
