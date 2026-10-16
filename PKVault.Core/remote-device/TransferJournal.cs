@@ -137,6 +137,28 @@ public class TransferJournal(IFileSystem fileSystem, string directory, TimeProvi
         );
     }
 
+    /// <summary>
+    /// Removes a transfer and its contents. The entry goes last: if this stops halfway, it is
+    /// still listed and removed again later, instead of leaving contents nobody knows about.
+    /// </summary>
+    public void Delete(string localId)
+    {
+        foreach (var blob in Enum.GetValues<TransferBlob>())
+        {
+            var path = GetBlobPath(localId, blob);
+            if (fileSystem.File.Exists(path))
+            {
+                fileSystem.File.Delete(path);
+            }
+        }
+
+        var entryPath = Path.Combine(directory, $"{localId}.json");
+        if (fileSystem.File.Exists(entryPath))
+        {
+            fileSystem.File.Delete(entryPath);
+        }
+    }
+
     public Task WriteBlob(string localId, TransferBlob blob, byte[] bytes)
         => WriteAtomic(GetBlobPath(localId, blob), bytes);
 

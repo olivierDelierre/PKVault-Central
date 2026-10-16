@@ -20,7 +20,7 @@ public class ActionServiceTests
         fileIOService.Matcher.GetAllPaths = (rootDir, globs) => [.. mockFileSystem.AllFiles];
     }
 
-    private ActionService GetService(DateTime now, bool throwOnSessionPersist = false)
+    private ActionService GetService(DateTime now, bool throwOnSessionPersist = false, IDeviceSaveLock? saveLock = null, bool saveHasWrites = false)
     {
         var serviceCollection = new ServiceCollection();
 
@@ -47,6 +47,10 @@ public class ActionServiceTests
         ]);
 
         serviceCollection.AddSingleton(mockPkmFileService.Object);
+        if (saveLock != null)
+        {
+            serviceCollection.AddSingleton(saveLock);
+        }
 
         var sp = serviceCollection.BuildServiceProvider();
 
@@ -60,6 +64,14 @@ public class ActionServiceTests
         {
             {saveWrapper.Object.Id, saveWrapper.Object}
         });
+
+        var mockBoxes = new Mock<ISaveBoxLoader>();
+        var mockPkms = new Mock<ISavePkmLoader>();
+        mockPkms.Setup(x => x.HasWritten).Returns(saveHasWrites);
+        var mockInventory = new Mock<ISaveInventoryLoader>();
+        savesLoadersService.Setup(x => x.GetAllLoaders()).Returns([
+            new SaveLoadersRecord(saveWrapper.Object, mockBoxes.Object, mockPkms.Object, mockInventory.Object, []),
+        ]);
 
         return new(
             sp: sp,
@@ -100,6 +112,50 @@ public class ActionServiceTests
                 Path.Combine(PathUtils.GetExpectedAppDirectory(), "mock-bkp", "backup_before_save_2015-03-21T232611-000Z.zip")
             ),
             $"File is missing, list of current files:\n{string.Join('\n', mockFileSystem.AllFiles)}");
+    }
+
+    private void AddPendingAction()
+    {
+        mockSessionService.Setup(x => x.Actions).Returns([
+            new(
+                ActionFn: async (scope, flags) => new(DataActionType.DATA_NORMALIZE, []),
+                new(DataActionType.DATA_NORMALIZE, [])
+            )
+        ]);
+    }
+
+    [Fact]
+    public async Task Save_ShouldRefuse_WhenAWrittenSaveIsBeingEditedOnTheRemoteBank()
+    {
+        ConfigureSettings("mock-bkp");
+        var saveLock = new Mock<IDeviceSaveLock>();
+        saveLock.Setup(x => x.IsLocked(It.IsAny<string>())).Returns(true);
+        var actionService = GetService(DateTime.Parse("2015-03-21 23:26:11"), saveLock: saveLock.Object, saveHasWrites: true);
+        AddPendingAction();
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(actionService.Save);
+
+        Assert.Contains("mock-save-path", ex.Message);
+        Assert.Contains("remote bank", ex.Message);
+        // refused before anything was done: no backup, nothing persisted
+        Assert.False(mockFileSystem.AllFiles.Any(f => f.Contains("backup_before_save")));
+        mockSessionService.Verify(x => x.PersistSession(It.IsAny<IServiceScope>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData(true, false)]    // locked but this save is not written
+    [InlineData(false, true)]    // written but not locked
+    public async Task Save_ShouldGoOn_WhenTheSaveWrittenIsNotTheLockedOne(bool locked, bool saveHasWrites)
+    {
+        ConfigureSettings("mock-bkp");
+        var saveLock = new Mock<IDeviceSaveLock>();
+        saveLock.Setup(x => x.IsLocked(It.IsAny<string>())).Returns(locked);
+        var actionService = GetService(DateTime.Parse("2016-03-21 23:26:11"), saveLock: saveLock.Object, saveHasWrites: saveHasWrites);
+        AddPendingAction();
+
+        await actionService.Save();
+
+        Assert.True(mockFileSystem.AllFiles.Any(f => f.Contains("backup_before_save")));
     }
 
     [Fact]

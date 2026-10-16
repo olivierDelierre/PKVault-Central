@@ -272,6 +272,22 @@ public class ActionService(
             return flags;
         }
 
+        // a save exchanged with the remote bank would be overwritten by the delivery, or overwrite it
+        var saveLock = sp.GetService<IDeviceSaveLock>();
+        if (saveLock != null)
+        {
+            var lockedPath = savesLoadersService.GetAllLoaders()
+                .Where(loaders => loaders.HasWritten)
+                .Select(loaders => loaders.Save.Metadata.FilePath)
+                .FirstOrDefault(path => !string.IsNullOrEmpty(path) && saveLock.IsLocked(path));
+            if (lockedPath != null)
+            {
+                throw new InvalidOperationException(
+                    $"The save {Path.GetFileName(lockedPath)} is being edited on the remote bank: finish or close it first"
+                );
+            }
+        }
+
         Log.Information("SAVING IN PROGRESS");
 
         await backupService.PrepareBackupThenRun("backup_before_save", flags, async backupTime =>

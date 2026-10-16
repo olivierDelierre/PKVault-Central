@@ -13,6 +13,14 @@ public interface ILocalSavesRefresher
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<TransferConflictResolution>))]
+/// <summary>
+/// Saves of the device which must not be written by anything but the transfer in progress.
+/// </summary>
+public interface IDeviceSaveLock
+{
+    public bool IsLocked(string savePath);
+}
+
 public enum TransferConflictResolution
 {
     /// <summary>Cancel on the server: the bank goes back to before the commit, the device save is not touched.</summary>
@@ -38,13 +46,26 @@ public enum TransferConflictResolution
 public class TransferCoordinator(
     IRemoteApiClient api, TransferJournal journal, IFileIOService fileIO,
     IRemoteDeviceStore store, ILocalSavesRefresher localRefresher, TimeProvider timeProvider
-)
+) : IDeviceSaveLock
 {
     private const int WRITE_ATTEMPTS = 3;
 
     private readonly SemaphoreSlim gate = new(1, 1);
 
+    /// <summary>
+    /// Finished transfers keep their contents this long, to recover from any late problem
+    /// (the server keeps the delivered content as long, by default).
+    /// </summary>
+    public TimeSpan JournalRetention { get; set; } = TimeSpan.FromDays(30);
+
     public IReadOnlyList<TransferJournalEntry> GetEntries() => journal.LoadAll();
+
+    /// <summary>
+    /// A save which is being edited on the server, or exchanged with it, must not be written by the local bank:
+    /// the server would deliver a save which erases that write.
+    /// </summary>
+    public bool IsLocked(string savePath)
+        => journal.LoadAll().Any(e => !e.IsTerminal && e.DeviceSavePath == savePath);
 
     /// <summary>
     /// Uploads the device save so it can be edited on the server.
@@ -164,11 +185,42 @@ public class TransferCoordinator(
                     await TryReloadLocal(entry);
                 }
             }
+
+            PurgeFinished();
         }
         finally
         {
             gate.Release();
         }
+    }
+
+    /// <summary>
+    /// Removes finished transfers (and their contents) older than <see cref="JournalRetention"/>.
+    /// Never one with a warning, one waiting for a decision, or one which did not finish.
+    /// </summary>
+    public int PurgeFinished()
+    {
+        var limit = timeProvider.GetUtcNow().UtcDateTime - JournalRetention;
+        var purged = 0;
+
+        try
+        {
+            foreach (var entry in journal.LoadAll())
+            {
+                if (entry.IsTerminal && entry.Warning == null && !entry.LocalReloadPending && entry.UpdatedAt < limit)
+                {
+                    journal.Delete(entry.LocalId);
+                    purged++;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // only a cleanup: tried again next time
+            Log.Warning(ex, "Cannot purge old transfers");
+        }
+
+        return purged;
     }
 
     /// <summary>

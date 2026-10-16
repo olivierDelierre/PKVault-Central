@@ -33,6 +33,7 @@ public static class RemoteDeviceServices
 
         // singletons: the coordinator runs one transfer step at a time for the whole app
         services.AddSingleton<TransferCoordinator>();
+        services.AddSingleton<IDeviceSaveLock>(sp => sp.GetRequiredService<TransferCoordinator>());
         services.AddSingleton<RemoteProxy>();
         services.AddSingleton<RemoteDeviceService>();
 

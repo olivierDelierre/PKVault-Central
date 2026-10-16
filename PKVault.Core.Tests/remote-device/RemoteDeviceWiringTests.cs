@@ -76,6 +76,8 @@ public class RemoteDeviceWiringTests
         // transfers are advanced one step at a time: two coordinators would break that
         Assert.Same(sp.GetRequiredService<TransferCoordinator>(), sp.GetRequiredService<TransferCoordinator>());
         Assert.Same(sp.GetRequiredService<RemoteDeviceService>(), sp.GetRequiredService<RemoteDeviceService>());
+        // the lock of the local bank is the very same coordinator, not a copy which would know nothing of the transfers
+        Assert.Same(sp.GetRequiredService<TransferCoordinator>(), sp.GetRequiredService<IDeviceSaveLock>());
     }
 
     [Fact]
