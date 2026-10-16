@@ -178,4 +178,54 @@ public class RemoteBankEndToEndTests : IDisposable
         Assert.True(done.State == DeviceTransferState.ACKED, $"{done.State} {done.LastError}");
         Assert.Equal(done.NewHash, Hash(await File.ReadAllBytesAsync(devicePath, Ct)));
     }
+
+    [Fact]
+    public async Task CopyToBankThenCommit_ShouldKeepTheSaveOfTheDeviceAsItWas_AndAddToTheBank()
+    {
+        Assert.SkipUnless(!string.IsNullOrEmpty(serverUrl), "Set PKVAULT_E2E_URL to a running server to run this test");
+
+        Directory.CreateDirectory(Path.GetDirectoryName(devicePath)!);
+        File.Copy(Path.Combine(Program.InitialCurrentDirectory, "./assets/Pokemon - Version Saphir (France).srm"), devicePath);
+        var original = await File.ReadAllBytesAsync(devicePath, Ct);
+
+        var (proxy, coordinator, journal) = CreateDevice();
+        var entry = await coordinator.StartUpload(devicePath, Ct);
+        Assert.True(entry.State == DeviceTransferState.UPLOADED, $"{entry.State} {entry.LastError}");
+        var saveId = entry.SaveId!.Value;
+
+        var pkmsBefore = (await GetJson(proxy, $"/api/storage/save/{saveId}/pkm")).AsArray().Count;
+        var bankBefore = (await GetJson(proxy, "/api/storage/main/pkm-version")).AsArray().Count;
+
+        // copy the last Pokémon which can go to the bank, like the button does (the other tests moved the first ones to the same bank)
+        var pkms = (await GetJson(proxy, $"/api/storage/save/{saveId}/pkm")).AsArray();
+        var banks = (await GetJson(proxy, "/api/storage/main/bank")).AsArray();
+        var bankId = banks.First(b => b!["isDefault"]!.GetValue<bool>())!["id"]!.GetValue<string>();
+        var body = new JsonObject
+        {
+            ["pkmIds"] = new JsonArray(pkms.Last(p => p!["canMoveToMain"]!.GetValue<bool>())!["id"]!.GetValue<string>()),
+            ["sourceSaveId"] = saveId,
+            ["bankId"] = bankId,
+        }.ToJsonString();
+        var copy = await proxy.Forward($"{LOCAL}/api/storage/copy/pkm/bank", new("PUT", new() { ["Content-Type"] = "application/json" }, body), Ct);
+        Assert.True(copy.ok, $"copy => {copy.status} {copy.headers.GetValueOrDefault("error-message")}");
+
+        // the same Pokémon cannot be copied twice: refused, and the bank does not grow
+        var again = await proxy.Forward($"{LOCAL}/api/storage/copy/pkm/bank", new("PUT", new() { ["Content-Type"] = "application/json" }, body), Ct);
+        Assert.False(again.ok);
+        Assert.Contains("already in the bank", again.headers.GetValueOrDefault("error-message") ?? again.body ?? "");
+
+        var commit = await Commit(proxy);
+        Assert.True(commit.ok, $"commit => {commit.status} {commit.headers.GetValueOrDefault("error-message")}");
+
+        // the bank has the copy, the save of the server still has all its Pokémon
+        Assert.Equal(bankBefore + 1, (await GetJson(proxy, "/api/storage/main/pkm-version")).AsArray().Count);
+        Assert.Equal(pkmsBefore, (await GetJson(proxy, $"/api/storage/save/{saveId}/pkm")).AsArray().Count);
+
+        // nothing to deliver: the save of the device is not written, byte for byte
+        Assert.Equal(original, await File.ReadAllBytesAsync(devicePath, Ct));
+        var after = journal.Get(entry.LocalId)!;
+        Assert.True(after.State is DeviceTransferState.UPLOADED or DeviceTransferState.ACKED, $"{after.State} {after.LastError}");
+        Assert.Null(after.NewHash);
+        Assert.Empty(Directory.GetFiles(Path.Combine(workDir, "saves"), "*.tmp-*"));
+    }
 }

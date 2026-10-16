@@ -22,7 +22,7 @@ So the first thing to do is to compile the Android project: if the glue has a co
 PowerShell may refuse to run `.ps1` files on your machine (execution policy). The commands below bypass it for the one run, without changing your settings.
 
 ```powershell
-# C# tests (the 2 end-to-end tests are skipped here: they need a server)
+# C# tests (the 3 end-to-end tests are skipped here: they need a server)
 dotnet test --project PKVault.Core.Tests
 
 # Frontend
@@ -37,7 +37,7 @@ cd ..
 powershell -NoProfile -ExecutionPolicy Bypass -File tools\remote-bank\run-e2e.ps1
 ```
 
-The end-to-end script: a "device" (a temporary folder) sends the sample save to the server, a Pokémon is moved to the bank, the commit gives the modified save back (twice in a row), and a commit whose answer is lost is still delivered at the next start.
+The end-to-end script: a "device" (a temporary folder) sends the sample save to the server, a Pokémon is moved to the bank, the commit gives the modified save back (twice in a row), a commit whose answer is lost is still delivered at the next start, and a copy to the bank leaves the save of the device untouched.
 
 ## 2. Build the Android app
 
@@ -164,6 +164,8 @@ The settings screen warns when the address is plain http and a token is used.
 In the app: *Settings* → *Remote bank*: enter the address and the token, **Save**, **Test the connection**, then switch to **Server**. A badge appears in the header.
 
 On the *Saves* page, a section *Saves of this device* lists the phone saves: **Send to the server**, then **Edit on the server**: it opens the usual storage page, on the server bank. Move Pokémon, then save as usual: the modified save is written back to the phone.
+
+To only keep a copy of some Pokémon in the bank, select them and use **Copy to bank** instead: the save of the phone is left as it is (the transfer goes back to waiting, nothing is written on the phone). Copying a Pokémon already in the bank is refused.
 
 The point of this feature is what happens when things go wrong. For each line, the expected result is the same: **no Pokémon lost, no corrupted save, and the transfer ends by itself once the problem is gone** (or asks you what to do).
 

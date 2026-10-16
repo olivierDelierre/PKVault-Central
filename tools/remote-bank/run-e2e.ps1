@@ -8,7 +8,8 @@
 
     What they check: a save of a "device" (a temporary folder) is sent to the server, a Pokémon is moved to
     the bank, the commit gives the modified save back to the device (twice in a row), and a commit whose
-    answer is lost is still delivered at the next start.
+    answer is lost is still delivered at the next start. A copy to the bank leaves the save of the device
+    untouched, byte for byte.
 
 .EXAMPLE
     .\run-e2e.ps1

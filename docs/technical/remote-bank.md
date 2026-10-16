@@ -105,6 +105,14 @@ A transfer which cannot move because of a network or server problem keeps its st
 
 Only the Android app registers the device side (`AddRemoteDevice()`); on the other hosts `api/device` answers that it is not available.
 
+## Copying instead of moving
+
+A Pokémon of a save can also be **copied** to the bank (button *Copy to bank*, on the storage page of the server copy of the save). The Pokémon stays in the save and the save is not modified at all, so there is nothing to deliver back: the commit stores the bank, and the transfer simply goes back to waiting (`UPLOADED`).
+
+`CopyPkmToBankAction` creates plain bank Pokémon, not linked to the save. This differs from the *attached* move, which keeps a link to the save (orphan once the server session is closed) and changes the trade record counter of the save. The action never deletes, writes, flushes the party, changes the records of, or synchronizes with the save: a test checks the state of the save is unchanged, and fails if one of these is added.
+
+It refuses, before creating anything, an egg, a shadow or locked Pokémon, a Pokémon already in the bank (same hash as the bank Pokémon), and the same Pokémon twice in the selection. The free slots (and the new box when the bank is full) come from `BankSlots`, shared with the move to the bank.
+
 ## Limits
 
 - **One session on the server.** The server has a single working session: only one device edits at a time, and a device cannot open a save while the server has pending actions.
