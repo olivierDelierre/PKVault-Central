@@ -156,6 +156,11 @@ The web UI asks for the token on the first request and keeps it in the browser (
 
 Without this variable, the server stays open as before.
 
+### Remote bank (Android)
+
+The Android app can use the bank of this server instead of its own, keeping its saves on the phone.
+See the [technical documentation](docs/technical/remote-bank.md).
+
 Or using basic docker run:
 
 ```

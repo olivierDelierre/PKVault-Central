@@ -37,6 +37,8 @@ flowchart TD
 
 ```
 
+- [Remote bank](./remote-bank.md): the Android app using the bank of a server, and [how to build and test it](./remote-bank-testing.md)
+
 Check each package README for more technical documentation.
 
 ## Quick start
