@@ -85,8 +85,11 @@ public class FakeRemoteServer : IRemoteApiClient
         return result;
     }
 
+    /// <summary>Raised by Ping, to simulate an unreachable server or a refused token.</summary>
+    public Exception? PingError { get; set; }
+
     public Task<RemotePingDTO> Ping(CancellationToken ct = default)
-        => Run("ping", () => new RemotePingDTO("test", seq));
+        => Run("ping", () => PingError != null ? throw PingError : new RemotePingDTO("test", seq));
 
     public Task<RemoteOpenSessionResult> OpenSession(string deviceId, string fileName, byte[] saveBytes, CancellationToken ct = default)
         => Run("open", () =>
@@ -223,6 +226,9 @@ public class FakeDeviceStore : IRemoteDeviceStore
 {
     public const string DEVICE_ID = "device-0001";
     public string DeviceId => DEVICE_ID;
+    public DeviceBankMode Mode { get; set; } = DeviceBankMode.LOCAL;
+    public string? ServerUrl { get; set; }
+    public string JournalDirectory => Path.Combine(Directory.GetCurrentDirectory(), "journal");
 }
 
 public class FakeLocalSavesRefresher : ILocalSavesRefresher

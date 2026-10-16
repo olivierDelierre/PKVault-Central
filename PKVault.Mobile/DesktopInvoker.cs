@@ -11,6 +11,17 @@ public class DesktopInvoker(IServiceProvider ServiceProvider, Task SetupTask) : 
 {
     public async Task<DesktopFetchResponse> Fetch(string url, DesktopFetchRequestInit? requestInit)
     {
+        requestInit ??= new("GET", []);
+
+        // remote bank mode: the server answers instead of the local router
+        var remoteDevice = ServiceProvider.GetService<RemoteDeviceService>();
+        if (remoteDevice != null)
+        {
+            var remoteResponse = await remoteDevice.TryForward(url, requestInit);
+            if (remoteResponse != null)
+                return remoteResponse;
+        }
+
         using var scope = ServiceProvider.CreateScope();
         var coreRouter = scope.ServiceProvider.GetRequiredService<CoreRouter>();
 

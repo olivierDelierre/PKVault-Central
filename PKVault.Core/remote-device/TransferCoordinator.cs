@@ -1,12 +1,7 @@
+using System.Text.Json.Serialization;
 using Serilog;
 
 namespace PKVault.Core;
-
-public interface IRemoteDeviceStore
-{
-    /// <summary>Stable identifier of this installation, sent to the server.</summary>
-    public string DeviceId { get; }
-}
 
 public interface ILocalSavesRefresher
 {
@@ -17,6 +12,7 @@ public interface ILocalSavesRefresher
     public Task<bool> TryRefresh();
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter<TransferConflictResolution>))]
 public enum TransferConflictResolution
 {
     /// <summary>Cancel on the server: the bank goes back to before the commit, the device save is not touched.</summary>

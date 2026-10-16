@@ -59,6 +59,29 @@ public class CoreRouterTests
         Assert.Equal(403, CoreRouter.GetStatusCode(new InvalidOperationException()));
         Assert.Equal(400, CoreRouter.GetStatusCode(new ArgumentException()));
         Assert.Equal(500, CoreRouter.GetStatusCode(new Exception()));
+        // the remote server answers are passed on as they are
+        Assert.Equal(401, CoreRouter.GetStatusCode(new RemoteApiException(401, "Unauthorized")));
+        Assert.Equal(502, CoreRouter.GetStatusCode(new RemoteApiException(502, "Bad gateway")));
+        Assert.Equal(503, CoreRouter.GetStatusCode(new RemoteUnreachableException("offline")));
+    }
+
+    [Fact]
+    public void DeviceRoutes_ShouldBeExposed()
+    {
+        var routes = new CoreRouter().Routes
+            .Where(r => r.ControllerName == "Device")
+            .Select(r => (r.HttpMethod, r.HttpTemplate))
+            .ToHashSet();
+
+        Assert.Contains(("GET", "api/device/status"), routes);
+        Assert.Contains(("PUT", "api/device/config"), routes);
+        Assert.Contains(("POST", "api/device/test"), routes);
+        Assert.Contains(("PUT", "api/device/mode"), routes);
+        Assert.Contains(("GET", "api/device/saves"), routes);
+        Assert.Contains(("POST", "api/device/saves/{saveId}/open"), routes);
+        Assert.Contains(("POST", "api/device/transfers/{localId}/close"), routes);
+        Assert.Contains(("POST", "api/device/transfers/{localId}/resolve"), routes);
+        Assert.Contains(("POST", "api/device/sync"), routes);
     }
 
     [Fact]

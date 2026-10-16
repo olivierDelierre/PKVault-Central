@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PKVault.Core.backup.routes;
 using PKVault.Core.dex.routes;
 using PKVault.Core.remote.routes;
+using PKVault.Core.remote_device.routes;
 using PKVault.Core.saveinfos.routes;
 using PKVault.Core.settings.routes;
 using PKVault.Core.storage.routes;
@@ -142,6 +143,7 @@ public class Program
         services.AddScoped<SettingsController>();
         services.AddScoped<WarningsController>();
         services.AddScoped<RemoteController>();
+        services.AddScoped<DeviceController>();
         services.AddScoped<RemoteBankService>();
         services.AddScoped<StaticDataController>();
 

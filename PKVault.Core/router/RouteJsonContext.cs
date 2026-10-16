@@ -29,6 +29,13 @@ namespace PKVault.Core;
 [JsonSerializable(typeof(RemoteOpenSessionDTO))]
 [JsonSerializable(typeof(RemoteTransferDTO))]
 [JsonSerializable(typeof(List<RemoteTransferDTO>))]
+[JsonSerializable(typeof(DeviceRemoteStatusDTO))]
+[JsonSerializable(typeof(DeviceRemoteConfigInput))]
+[JsonSerializable(typeof(DeviceTransferDTO))]
+[JsonSerializable(typeof(DeviceSaveDTO))]
+[JsonSerializable(typeof(DeviceBankMode))]
+[JsonSerializable(typeof(TransferConflictResolution))]
+[JsonSerializable(typeof(List<DeviceSaveDTO>))]
 
 // [JsonSerializable(typeof(EditPkmVariantPayload))]
 [JsonSerializable(typeof(DeletePkmVariantActionInput))]
