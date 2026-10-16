@@ -86,7 +86,11 @@ A **Debug** build is needed to read the transfers journal from the phone (see se
 
 On a phone: enable *Developer options* and *USB debugging*, then accept the prompt on the phone when you plug it. `adb` is in `<ANDROID_HOME>\platform-tools`.
 
-### Option B: with Docker (nothing to install, like the release build)
+### Option B: let GitHub build it (nothing to install, updates with Obtainium)
+
+See [remote-bank-publishing.md](./remote-bank-publishing.md): a tag push builds the signed APK and the server image and publishes them.
+
+### Option C: with Docker on your machine
 
 The repository already builds the APK this way (`Dockerfile`, target `mobile-android`). It needs a signing key; a throwaway one is enough for tests:
 

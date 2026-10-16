@@ -48,3 +48,5 @@ keytool
 storepass
 testpass
 wwwroot
+obtainium
+temurin
