@@ -174,11 +174,11 @@ public class PkmFileLoader : IPkmFileLoader
 
         Log.Debug($"Pkm files to update: {pkmFilesToUpdate.Count}");
 
-        pkmFilesToUpdate.ForEach(pkmFileToUpdate =>
+        foreach (var pkmFileToUpdate in pkmFilesToUpdate)
         {
             var filepath = Path.Combine(Directory.GetCurrentDirectory(), pkmFileToUpdate.Filepath);
-            fileIOService.WriteBytes(filepath, pkmFileToUpdate.Data);
-        });
+            await fileIOService.WriteBytes(filepath, pkmFileToUpdate.Data);
+        }
 
         dbSet.RemoveRange(pkmFilesToDelete);
         await db.SaveChangesAsync();
