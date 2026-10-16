@@ -10,6 +10,8 @@ using Microsoft.Extensions.Primitives;
 using NSwag;
 using PKVault.Core.backup.routes;
 using PKVault.Core.dex.routes;
+using PKVault.Core.remote.routes;
+using PKVault.Core.remote_device.routes;
 using PKVault.Core.saveinfos.routes;
 using PKVault.Core.settings.routes;
 using PKVault.Core.storage.routes;
@@ -34,6 +36,8 @@ public partial class CoreRouter
         typeof(SettingsController),
         typeof(WarningsController),
         typeof(StaticDataController),
+        typeof(RemoteController),
+        typeof(DeviceController),
     ];
 
     // "GET", "api/static-data/spritesheet/{sheetName}", MethodInfo, (ParameterInfo, Kind)[], "StaticData", "GetSpritesheetImg"
@@ -130,14 +134,14 @@ public partial class CoreRouter
             statusCode = GetStatusCode(ex);
             exception = ex;
 
-            return new CoreJSONResponse(
+            var errorResponse = new CoreJSONResponse(
                 Data: null,
                 StatusCode: statusCode,
                 ContentType: MediaTypeNames.Text.Plain,
                 Header: new()
                 {
                     ["Content-Type"] = MediaTypeNames.Text.Plain,
-                    ["access-control-expose-headers"] = new StringValues(["error-message", "error-stack"]).ToString(),
+                    ["access-control-expose-headers"] = new StringValues(["error-message", "error-stack", "error-code", "error-data"]).ToString(),
                     ["error-message"] = JsonSerializer.Serialize(
                         InvalidCharacterRegex().Replace(ex.Message, "\n").Replace("\n\n", "\n"),
                         RouteJsonContext.Default.String
@@ -148,6 +152,24 @@ public partial class CoreRouter
                     )
                 }
             );
+
+            var (errorCode, errorData) = ex switch
+            {
+                ConflictException conflict => (conflict.Code, conflict.ErrorData),
+                RemoteApiException remoteApi => (remoteApi.Code, remoteApi.ErrorData),
+                RemoteUnreachableException => ("REMOTE_UNREACHABLE", null),
+                _ => ((string?)null, (string?)null),
+            };
+            if (errorCode != null)
+            {
+                errorResponse.Header["error-code"] = errorCode;
+            }
+            if (errorData != null)
+            {
+                errorResponse.Header["error-data"] = errorData;
+            }
+
+            return errorResponse;
         }
         finally
         {
@@ -162,11 +184,15 @@ public partial class CoreRouter
         }
     }
 
-    private static int GetStatusCode(Exception ex)
+    public static int GetStatusCode(Exception ex)
     {
         return ex switch
         {
             KeyNotFoundException => 404,
+            ConflictException => 409,
+            // the remote server answered with an error, or did not answer
+            RemoteApiException remoteApi => remoteApi.Status,
+            RemoteUnreachableException => 503,
             InvalidOperationException => 403,
             ArgumentException => 400,
             _ => 500,

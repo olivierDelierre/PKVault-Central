@@ -38,3 +38,15 @@ steamdeck
 chnapy
 
 spritesheet
+acked
+netsdk
+genkeypair
+keyalg
+keypass
+keysize
+keytool
+storepass
+testpass
+wwwroot
+obtainium
+temurin

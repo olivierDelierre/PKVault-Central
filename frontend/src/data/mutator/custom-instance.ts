@@ -7,6 +7,103 @@ console.log('Server url =>', baseURL);
 
 export const getApiFullUrl = (url: string) => `${baseURL}${url}`;
 
+/**
+ * API token, only required when the server is started with PKVAULT_API_TOKEN.
+ * Stored per server, in the browser only.
+ */
+const TOKEN_STORAGE_KEY = `pkvault-api-token:${baseURL}`;
+
+const getStoredApiToken = (): string | null => {
+    try {
+        return window.localStorage.getItem(TOKEN_STORAGE_KEY);
+    } catch (_) {
+        return null;
+    }
+};
+
+const setStoredApiToken = (token: string | null): void => {
+    try {
+        if (token) {
+            window.localStorage.setItem(TOKEN_STORAGE_KEY, token);
+        } else {
+            window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+        }
+    } catch (_) {
+        // storage not available: the token will be asked again
+    }
+};
+
+export const hasStoredApiToken = (): boolean => !!getStoredApiToken();
+
+// shared between concurrent requests failing at once, to ask the token only once
+let tokenPrompt: Promise<string | null> | null = null;
+
+const promptApiToken = (): Promise<string | null> => {
+    tokenPrompt ??= Promise.resolve()
+        .then(() => window.prompt('This PKVault server requires an access token (PKVAULT_API_TOKEN).')?.trim() || null)
+        .finally(() => {
+            tokenPrompt = null;
+        });
+    return tokenPrompt;
+};
+
+/**
+ * Same as fetch, with the API token if any.
+ * If the server answers 401, ask the token and retry once.
+ */
+export const fetchWithAuth = async (url: string, init?: RequestInit, isRetry = false): Promise<Response> => {
+    const headers = new Headers(init?.headers);
+    const token = getStoredApiToken();
+    if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    const res = await fetch(url, { ...init, headers });
+
+    if (res.status !== 401) {
+        return res;
+    }
+
+    if (isRetry) {
+        // the given token is wrong
+        setStoredApiToken(null);
+        return res;
+    }
+
+    const newToken = await promptApiToken();
+    if (!newToken) {
+        return res;
+    }
+
+    setStoredApiToken(newToken);
+    return fetchWithAuth(url, init, true);
+};
+
+/**
+ * Download a file from the API, for places where a simple link cannot send the token.
+ */
+export const downloadWithAuth = async (url: string): Promise<void> => {
+    const targetUrl = getApiFullUrl(url);
+    const res = await fetchWithAuth(targetUrl);
+
+    if (!res.ok) {
+        throw new QueryError(res);
+    }
+
+    const filename = /filename\*?=(?:UTF-8'')?"?([^";,]+)/i.exec(res.headers.get('Content-Disposition') ?? '')?.[ 1 ]
+        ?? 'download';
+
+    const objectUrl = URL.createObjectURL(await res.blob());
+    try {
+        const link = document.createElement('a');
+        link.href = objectUrl;
+        link.download = decodeURIComponent(filename);
+        link.click();
+    } finally {
+        URL.revokeObjectURL(objectUrl);
+    }
+};
+
 export type ResponseBack<D = unknown> = z.infer<typeof responseBackSchema> & { data: D }
 export const responseBackSchema = z.object({
     // data: z.unknown(),
@@ -38,7 +135,7 @@ export const customInstance = async <T extends ResponseBack>(url: string, init?:
             return { data, status: res.status, headers } satisfies ResponseBack as T;
         }
 
-        const res = await fetch(targetUrl, init);
+        const res = await fetchWithAuth(targetUrl, init);
 
         if (!res.ok) {
             throw new QueryError(res);

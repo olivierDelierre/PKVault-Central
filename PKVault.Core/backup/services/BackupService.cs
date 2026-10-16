@@ -418,7 +418,11 @@ public class BackupService(
         }
     }
 
-    public async Task PrepareBackupThenRun(string backupName, DataUpdateFlags flags, Func<Task> action)
+    public Task PrepareBackupThenRun(string backupName, DataUpdateFlags flags, Func<Task> action)
+        => PrepareBackupThenRun(backupName, flags, _ => action());
+
+    /// <param name="action">Receives the time of the backup created before running it</param>
+    public async Task PrepareBackupThenRun(string backupName, DataUpdateFlags flags, Func<DateTime, Task> action)
     {
         var bkpDateTime = await CreateBackup(backupName, flags);
 
@@ -426,7 +430,7 @@ public class BackupService(
         {
             var logtime = Log.Logger.Time("Action run with backup fallback");
 
-            await action();
+            await action(bkpDateTime);
 
             logtime.Dispose();
 

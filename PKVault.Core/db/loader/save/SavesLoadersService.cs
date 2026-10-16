@@ -14,7 +14,7 @@ public interface ISavesLoadersService
     public IDictionary<uint, SaveInfosDTO> GetAllSaveInfos();
 
     public void SetFlags(DataUpdateFlags flags);
-    public Task WriteToFiles();
+    public Task<IReadOnlyList<SaveWriteResult>> WriteToFiles();
 
     public void Clear();
     public Task Setup(DataUpdateFlags flags);
@@ -119,11 +119,15 @@ public class SavesLoadersService(
         });
     }
 
-    public async Task WriteToFiles()
+    /// <summary>
+    /// Write modified saves. Saves uploaded by a remote device are NOT written to disk:
+    /// their bytes are returned to be recorded as a pending delivery (outbox) instead.
+    /// </summary>
+    public async Task<IReadOnlyList<SaveWriteResult>> WriteToFiles()
     {
         using var _ = Log.Logger.Time($"SavesLoadersService.WriteToFiles");
 
-        List<Task> tasks = [];
+        List<Task<SaveWriteResult>> tasks = [];
 
         foreach (var loaders in Loaders.Values.ToList())
         {
@@ -135,23 +139,38 @@ public class SavesLoadersService(
             }
         }
 
-        await Task.WhenAll(tasks);
+        return await Task.WhenAll(tasks);
     }
 
-    private async Task WriteSave(SaveWrapper save)
+    private async Task<SaveWriteResult> WriteSave(SaveWrapper save)
     {
         if (save.GetSave() is IStorageCleanup scSave)
             scSave.FixStoragePreWrite();
 
         var path = save.Metadata.FilePath;
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        await fileIOService.WriteBytes(path, save.GetSaveFileData());
+        var bytes = save.GetSaveFileData();
+
+        var isRemote = settingsService.GetSettings().IsRemoteSavePath(path);
+        if (isRemote)
+        {
+            Log.Information($"Remote save {save.Id} not written to disk, will be delivered to its device");
+        }
+        else
+        {
+            await fileIOService.WriteBytes(path, bytes);
+        }
 
         var evolves = await staticDataService.GetStaticEvolves();
 
         SimpleUpdateLoadersWithSave(Loaders, save, evolves);
 
-        Log.Information($"Writed save {save.Id} to {path}");
+        if (!isRemote)
+        {
+            Log.Information($"Writed save {save.Id} to {path}");
+        }
+
+        return new SaveWriteResult(save.Id, path, bytes, isRemote);
     }
 
     public void Clear()
@@ -185,7 +204,12 @@ public class SavesLoadersService(
             settings.SavesUploadsPath,
             ..settings.SettingsMutable.SAVE_GLOBS
         ];
-        var searchPaths = fileIOService.Matcher.SearchPaths(globs);
+        var searchPaths = fileIOService.Matcher.SearchPaths(globs)
+            // remote saves are only loaded through their dedicated folder
+            // (a broad user glob could match them too)
+            .Where(path => !settings.IsUnderRemoteSavesPath(path))
+            .Concat(fileIOService.Matcher.SearchPaths([SettingsDTO.RemoteSavesPath + "**"]))
+            .Distinct();
 
         var evolves = await staticDataService.GetStaticEvolves();
 
@@ -369,6 +393,8 @@ public class SavesLoadersService(
         return true;
     }
 }
+
+public record SaveWriteResult(uint SaveId, string Path, byte[] Bytes, bool IsRemote);
 
 public record SaveLoadersRecord(
     SaveWrapper Save,

@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
 using PKVault.Core.backup.routes;
 using PKVault.Core.dex.routes;
+using PKVault.Core.remote.routes;
+using PKVault.Core.remote_device.routes;
 using PKVault.Core.saveinfos.routes;
 using PKVault.Core.settings.routes;
 using PKVault.Core.storage.routes;
@@ -121,6 +123,7 @@ public class Program
 
         Log.Information($"Setup services - Loaders");
         services.AddScoped<IMetaLoader, MetaLoader>();
+        services.AddScoped<IRemoteSaveService, RemoteSaveService>();
         services.AddScoped<IBankLoader, BankLoader>();
         services.AddScoped<IBoxLoader, BoxLoader>();
         services.AddScoped<IPkmVariantLoader, PkmVariantLoader>();
@@ -139,6 +142,9 @@ public class Program
         services.AddScoped<DexController>();
         services.AddScoped<SettingsController>();
         services.AddScoped<WarningsController>();
+        services.AddScoped<RemoteController>();
+        services.AddScoped<DeviceController>();
+        services.AddScoped<RemoteBankService>();
         services.AddScoped<StaticDataController>();
 
         Log.Information($"Setup services - Finished");
@@ -161,6 +167,12 @@ public class Program
     public static async Task SetupData(IServiceProvider sp)
     {
         await SetupSampleSaveFile(sp);
+
+        // before saves loading
+        using (var scope = sp.CreateScope())
+        {
+            scope.ServiceProvider.GetRequiredService<IRemoteSaveService>().CleanupDeliveredFiles();
+        }
 
         var sessionService = sp.GetRequiredService<ISessionServiceMinimal>();
         await sessionService.EnsureSessionCreated();

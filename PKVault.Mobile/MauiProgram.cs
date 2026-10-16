@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.LifecycleEvents;
 using PKVault.Core;
+using PKVault.Mobile.Remote;
 using Serilog;
 
 namespace PKVault.Mobile;
@@ -85,6 +86,11 @@ public static class MauiProgram
 			});
 
 		Program.ConfigureServices(builder.Services);
+
+		// remote bank: a bank hosted on a server, see PKVault.Core/remote-device
+		builder.Services.AddSingleton<IRemoteDeviceStore, MauiRemoteDeviceStore>();
+		builder.Services.AddSingleton<IRemoteSecretStore, MauiRemoteSecretStore>();
+		builder.Services.AddRemoteDevice();
 
 #if ANDROID
 		HybridWebViewHandler.Mapper.AppendToMapping("CustomFileChooser", (handler, view) =>

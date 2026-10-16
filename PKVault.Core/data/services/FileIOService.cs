@@ -118,7 +118,44 @@ public class FileIOService(IFileSystem fileSystem) : IFileIOService
 
         CreateDirectoryIfAny(path);
 
-        await fileSystem.File.WriteAllBytesAsync(path, value);
+        await WriteAtomic(path, stream => stream.WriteAsync(value).AsTask());
+    }
+
+    /// <summary>
+    /// Write to a temp file, flush to disk, then rename over the target.
+    /// An interrupted write leaves the previous content intact.
+    /// </summary>
+    private async Task WriteAtomic(string path, Func<Stream, Task> write)
+    {
+        var tmpPath = $"{path}.tmp-{Guid.NewGuid():N}";
+
+        try
+        {
+            using (var stream = fileSystem.File.Create(tmpPath))
+            {
+                await write(stream);
+                await stream.FlushAsync();
+                stream.Flush(true);
+            }
+
+            fileSystem.File.Move(tmpPath, path, overwrite: true);
+        }
+        catch
+        {
+            try
+            {
+                if (fileSystem.File.Exists(tmpPath))
+                {
+                    fileSystem.File.Delete(tmpPath);
+                }
+            }
+            catch (Exception cleanupEx)
+            {
+                Log.Warning(cleanupEx, $"Failed to clean temp file {tmpPath}");
+            }
+
+            throw;
+        }
     }
 
     public async Task WriteJSONFile<TValue>(string path, JsonTypeInfo<TValue> jsonTypeInfo, TValue value)
@@ -127,12 +164,11 @@ public class FileIOService(IFileSystem fileSystem) : IFileIOService
 
         CreateDirectoryIfAny(path);
 
-        using var fileStream = fileSystem.File.Create(path);
-        await JsonSerializer.SerializeAsync(
-            fileStream,
+        await WriteAtomic(path, stream => JsonSerializer.SerializeAsync(
+            stream,
             value,
             jsonTypeInfo
-        );
+        ));
     }
 
     public async Task WriteJSONGZipFile<TValue>(string path, JsonTypeInfo<TValue> jsonTypeInfo, TValue value)

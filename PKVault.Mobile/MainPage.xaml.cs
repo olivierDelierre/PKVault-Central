@@ -32,6 +32,25 @@ public partial class MainPage : ContentPage
 	private async Task SetupCore()
 	{
 		await Program.SetupData(ServiceProvider);
+
+		_ = ResumeRemoteTransfers();
+	}
+
+	/// <summary>
+	/// Transfers with the remote bank which the last stop of the app interrupted go on.
+	/// </summary>
+	private async Task ResumeRemoteTransfers()
+	{
+		try
+		{
+			var coordinator = ServiceProvider.GetService<TransferCoordinator>();
+			if (coordinator != null)
+				await coordinator.Resume();
+		}
+		catch (Exception ex)
+		{
+			Serilog.Log.Warning(ex, "Resume of remote transfers failed");
+		}
 	}
 
 	private async void OnHybridWebViewInitialized(object? sender, EventArgs e)

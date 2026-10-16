@@ -65,6 +65,25 @@ public class Program
 
         var app = builder.Build();
 
+        app.Use(async (context, next) =>
+        {
+            if (context.Request.Path.StartsWithSegments("/api")
+                && !HttpMethods.IsOptions(context.Request.Method)
+                && ApiTokenAuth.RequiresToken(context.Request.Method, context.Request.Path.Value ?? "")
+                && !ApiTokenAuth.IsAuthorized(EnvUtil.API_TOKEN, context.Request.Headers.Authorization.ToString()))
+            {
+                Log.Warning($"Unauthorized request {context.Request.Method} {context.Request.Path}");
+
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.Headers.WWWAuthenticate = "Bearer";
+                context.Response.Headers["access-control-expose-headers"] = "error-message";
+                context.Response.Headers["error-message"] = "\"Unauthorized: missing or invalid API token\"";
+                return;
+            }
+
+            await next();
+        });
+
         app.Map("{*path}", async (HttpContext context) =>
         {
             using var scope = app.Services.CreateScope();

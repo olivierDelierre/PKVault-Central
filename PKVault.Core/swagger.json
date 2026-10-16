@@ -153,6 +153,254 @@
         }
       }
     },
+    "/api/device/config": {
+      "put": {
+        "tags": [
+          "Device"
+        ],
+        "operationId": "Device_SetConfig",
+        "requestBody": {
+          "x-name": "input",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceRemoteConfigInput"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceRemoteStatusDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/device/mode": {
+      "put": {
+        "tags": [
+          "Device"
+        ],
+        "operationId": "Device_SetMode",
+        "parameters": [
+          {
+            "name": "mode",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/DeviceBankMode"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceRemoteStatusDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/device/saves": {
+      "get": {
+        "tags": [
+          "Device"
+        ],
+        "operationId": "Device_GetSaves",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceSaveDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/device/saves/{saveId}/open": {
+      "post": {
+        "tags": [
+          "Device"
+        ],
+        "operationId": "Device_OpenOnServer",
+        "parameters": [
+          {
+            "name": "saveId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceTransferDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/device/status": {
+      "get": {
+        "tags": [
+          "Device"
+        ],
+        "operationId": "Device_GetStatus",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceRemoteStatusDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/device/sync": {
+      "post": {
+        "tags": [
+          "Device"
+        ],
+        "operationId": "Device_Sync",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceRemoteStatusDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/device/test": {
+      "post": {
+        "tags": [
+          "Device"
+        ],
+        "operationId": "Device_TestConnection",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemotePingDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/device/transfers/{localId}/close": {
+      "post": {
+        "tags": [
+          "Device"
+        ],
+        "operationId": "Device_CloseTransfer",
+        "parameters": [
+          {
+            "name": "localId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceTransferDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/device/transfers/{localId}/resolve": {
+      "post": {
+        "tags": [
+          "Device"
+        ],
+        "operationId": "Device_ResolveConflict",
+        "parameters": [
+          {
+            "name": "localId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "resolution",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TransferConflictResolution"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceTransferDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/dex": {
       "get": {
         "tags": [
@@ -293,6 +541,261 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DexMoveDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/remote/ping": {
+      "get": {
+        "tags": [
+          "Remote"
+        ],
+        "operationId": "Remote_Ping",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemotePingDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/remote/session/close": {
+      "post": {
+        "tags": [
+          "Remote"
+        ],
+        "operationId": "Remote_CloseSession",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "saveId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/remote/session/open": {
+      "post": {
+        "tags": [
+          "Remote"
+        ],
+        "operationId": "Remote_OpenSession",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "fileName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 3
+          }
+        ],
+        "requestBody": {
+          "x-name": "saveFile",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "saveFile": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoteOpenSessionDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/remote/transfers": {
+      "get": {
+        "tags": [
+          "Remote"
+        ],
+        "operationId": "Remote_GetTransfers",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RemoteTransferDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/remote/transfers/{id}/abort": {
+      "post": {
+        "tags": [
+          "Remote"
+        ],
+        "operationId": "Remote_Abort",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/remote/transfers/{id}/ack": {
+      "post": {
+        "tags": [
+          "Remote"
+        ],
+        "operationId": "Remote_Ack",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "newHash",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoteTransferDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/remote/transfers/{id}/download": {
+      "get": {
+        "tags": [
+          "Remote"
+        ],
+        "operationId": "Remote_Download",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -4234,6 +4737,154 @@
           1
         ]
       },
+      "DeviceRemoteConfigInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "serverUrl": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "DeviceRemoteStatusDTO": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode",
+          "hasToken",
+          "reachable",
+          "authorized",
+          "transfers"
+        ],
+        "properties": {
+          "mode": {
+            "type": "string"
+          },
+          "serverUrl": {
+            "type": "string"
+          },
+          "hasToken": {
+            "type": "boolean"
+          },
+          "reachable": {
+            "type": "boolean"
+          },
+          "authorized": {
+            "type": "boolean"
+          },
+          "connectionError": {
+            "type": "string"
+          },
+          "transfers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeviceTransferDTO"
+            }
+          }
+        }
+      },
+      "DeviceTransferDTO": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "localId",
+          "fileName",
+          "state",
+          "localReloadPending",
+          "updatedAt"
+        ],
+        "properties": {
+          "localId": {
+            "type": "string"
+          },
+          "saveId": {
+            "type": "integer"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "conflictReason": {
+            "type": "string"
+          },
+          "lastError": {
+            "type": "string"
+          },
+          "warning": {
+            "type": "string"
+          },
+          "localReloadPending": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DeviceBankMode": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "LOCAL",
+          "REMOTE"
+        ],
+        "enum": [
+          "LOCAL",
+          "REMOTE"
+        ]
+      },
+      "DeviceSaveDTO": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "save"
+        ],
+        "properties": {
+          "save": {
+            "$ref": "#/components/schemas/SaveInfosDTO"
+          },
+          "transfer": {
+            "$ref": "#/components/schemas/DeviceTransferDTO"
+          }
+        }
+      },
+      "RemotePingDTO": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "version",
+          "commitSeq"
+        ],
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "commitSeq": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "TransferConflictResolution": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "ABORT_ON_SERVER",
+          "OVERWRITE_DEVICE",
+          "DISCARD"
+        ],
+        "enum": [
+          "ABORT_ON_SERVER",
+          "OVERWRITE_DEVICE",
+          "DISCARD"
+        ]
+      },
       "StaticEvolvesRichData": {
         "type": "object",
         "additionalProperties": {
@@ -4639,6 +5290,73 @@
             "items": {
               "type": "integer"
             }
+          }
+        }
+      },
+      "RemoteOpenSessionDTO": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "saveId",
+          "originalHash",
+          "data"
+        ],
+        "properties": {
+          "saveId": {
+            "type": "integer"
+          },
+          "originalHash": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DataDTO"
+          }
+        }
+      },
+      "RemoteTransferDTO": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "saveId",
+          "fileName",
+          "originalHash",
+          "newHash",
+          "size",
+          "commitSeq",
+          "createdAt",
+          "state"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "saveId": {
+            "type": "integer"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "originalHash": {
+            "type": "string"
+          },
+          "newHash": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "commitSeq": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "state": {
+            "type": "string"
           }
         }
       },
