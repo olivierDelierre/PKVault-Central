@@ -16,6 +16,7 @@ import { UIPathLine } from '../../ui/path/ui-path-line';
 import { UIPopover } from '../../ui/popover/ui-popover';
 import { switchUtil } from '../../util/switch-util';
 import { SettingsAndroidDirectory } from './settings-android-directory';
+import { SettingsRemoteBank } from './settings-remote-bank';
 
 export const SettingsMainLeft: React.FC = () => {
     const { t } = useTranslate();
@@ -66,6 +67,8 @@ export const SettingsMainLeft: React.FC = () => {
                 <UIPathLine>{settings?.settingsPath ?? '-'}</UIPathLine>
             </SimpleGrid>
         </Card>
+
+        <SettingsRemoteBank />
 
         <Card>
             <SimpleGrid cols={2}>

@@ -2,6 +2,7 @@ import { Badge, Button, Card, Divider, EmptyState, Group, Tooltip } from '@manti
 import { DownloadIcon, FolderIcon, FolderSearchIcon, PackageOpenIcon, TrashIcon, TriangleAlertIcon } from 'lucide-react';
 import type React from "react";
 import { HistoryContext } from '../context/history-context';
+import { useRemoteStatus } from '../data/remote/use-remote-status';
 import { downloadWithAuth, getApiFullUrl, hasStoredApiToken } from '../data/mutator/custom-instance';
 import { DesktopMessageType } from '../data/sdk/model';
 import { getSaveInfosDownloadUrl, useSaveInfosDelete, useSaveInfosGetAll } from '../data/sdk/save-infos/save-infos.gen';
@@ -10,6 +11,7 @@ import { withErrorCatcher } from '../error/with-error-catcher';
 import { useStaticData } from '../hooks/use-static-data';
 import { getGameInfos } from '../pokedex/details/util/get-game-infos';
 import { Route } from '../routes/saves';
+import { DeviceSavesSection } from '../saves/device-saves/device-saves-section';
 import { SavesUploadButton } from '../saves/saves-upload-popover/saves-upload-button';
 import { useDesktopMessage } from '../settings/globs-input/hooks/use-desktop-message';
 import { GameExpanded } from '../storage/panel/game-list/game-expanded';
@@ -36,6 +38,8 @@ export const SavesPage: React.FC = withErrorCatcher('default', () => {
   const settingsQuery = useSettingsGet();
   const settings = settingsQuery.data?.data;
 
+  const { isRemote } = useRemoteStatus();
+
   const isLoading = saveInfosQuery.isPending && saveInfosQuery.isEnabled;
 
   const generations = [ ...new Set(Object.values(staticData.versions).map(version => version.generation)) ].sort();
@@ -47,7 +51,25 @@ export const SavesPage: React.FC = withErrorCatcher('default', () => {
     });
 
   return <UISavesContent>
+    <DeviceSavesSection
+      onEdit={saveId => navigate({
+        to: '/storage',
+        search: {
+          storages: [
+            storageHistoryValue?.search.storages?.[ 0 ] ?? { saveId: null },
+            { saveId },
+          ],
+        },
+      })}
+    />
+
     <Card pr={getScrollPadding('md')} style={{ overflowY: 'auto', scrollbarGutter: 'stable' }}>
+      {isRemote && <Card.Section inheritPadding withBorder>
+        <Group py='sm'>
+          <span>Saves on the server</span>
+        </Group>
+      </Card.Section>}
+
       {!isLoading && saveInfos.length === 0 && <EmptyState
         size='sm'
         py='md'
