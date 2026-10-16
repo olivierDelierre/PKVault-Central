@@ -9,6 +9,7 @@ import { pick } from '../../util/pick';
 import { useSelectCallback } from '../../util/use-select-callback';
 import type { MoveContainerValue } from '../move/move-container-fns';
 import { EditPkmButton } from './actions/edit-pkm-button';
+import { CopyToBankButton } from './actions/copy-to-bank-button';
 import { EvolvePkmButton } from './actions/evolve-pkm-button';
 import { MoveAttachedButton } from './actions/move-attached-button';
 import { MoveButton } from './actions/move-button';
@@ -83,6 +84,11 @@ export const DetailsActions: React.FC<DetailsActionsProps> = ({ focusOnMount, id
                 // eslint-disable-next-line react-hooks/refs
                 useDrag={dragging.useDrag}
             />
+
+            {saveId && !isInventory && <CopyToBankButton
+                pkmIds={ids}
+                saveId={saveId}
+            />}
 
             <EditPkmButton
                 pkmIds={ids}

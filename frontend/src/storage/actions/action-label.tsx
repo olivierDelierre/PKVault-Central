@@ -1,5 +1,5 @@
 import { Group, ThemeIcon } from '@mantine/core';
-import { BoxIcon, CalendarSyncIcon, ChevronsRight, CircleSmallIcon, Database, ImportIcon, LandmarkIcon, LinkIcon, MoveIcon, PenIcon, PlusCircleIcon, RefreshCcw, SortDescIcon, TrashIcon, UnlinkIcon } from 'lucide-react';
+import { BoxIcon, CalendarSyncIcon, ChevronsRight, CircleSmallIcon, CopyIcon, Database, ImportIcon, LandmarkIcon, LinkIcon, MoveIcon, PenIcon, PlusCircleIcon, RefreshCcw, SortDescIcon, TrashIcon, UnlinkIcon } from 'lucide-react';
 import type React from 'react';
 import { DataActionType, EntityContext, GameVersion, type DataActionPayload } from '../../data/sdk/model';
 import { useSaveInfosGetAll } from '../../data/sdk/save-infos/save-infos.gen';
@@ -97,6 +97,19 @@ const ActionLabelMap = {
             {attached && <ThemeIcon variant='transparent' color='gray' size='xs' fz='sm'>
                 <LinkIcon />
             </ThemeIcon>}
+        </>;
+    },
+    CopyPkm: ({ parameters }: Pick<DataActionPayload, 'parameters'>) => {
+        const species = parameters[ 4 ];
+
+        return <>
+            {typeof species === 'number'
+                ? <SpeciesImg context={EntityContext.Gen9a} species={species} form={0} />
+                : <UIBallIcon />}
+
+            <ThemeIcon variant='transparent' color='gray' size='xs' fz='sm'>
+                <CopyIcon />
+            </ThemeIcon>
         </>;
     },
     MoveItem: ({ parameters }: Pick<DataActionPayload, 'parameters'>) => {
@@ -263,6 +276,7 @@ export const ActionLabel: React.FC<DataActionPayload> = ({ type, parameters }) =
 
         [ DataActionType.MAIN_CREATE_PKM_VERSION ]: ActionLabelMap.CreateVariant,
         [ DataActionType.MOVE_PKM ]: ActionLabelMap.MovePkm,
+        [ DataActionType.COPY_PKM ]: ActionLabelMap.CopyPkm,
         [ DataActionType.DETACH_PKM_SAVE ]: ActionLabelMap.DetachPkm,
         [ DataActionType.EDIT_PKM_VERSION ]: ActionLabelMap.EditPkmVariant,
         [ DataActionType.EDIT_PKM_SAVE ]: ActionLabelMap.EditPkmSave,

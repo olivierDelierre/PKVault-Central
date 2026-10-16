@@ -55,6 +55,8 @@ export const DeviceSavesSection: React.FC<DeviceSavesSectionProps> = ({ onEdit }
                 <Text size='sm' c='dimmed'>
                     Send a save to the server to edit it with the bank of the server.
                     Once saved, the modified save is written back here.
+                    To only keep a copy of some pokémon in the bank, use "Copy to bank" while editing:
+                    the save of this device is then left as it is.
                 </Text>
 
                 {error && <Alert variant='outline' color='red' icon={<TriangleAlertIcon />}>{error}</Alert>}

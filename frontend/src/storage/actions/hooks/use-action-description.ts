@@ -37,6 +37,13 @@ export const useActionDescription = () => {
                     targetBoxSlot: parameters[ 4 ],
                     attached: parameters[ 5 ] ? t('storage.save-actions.part.attached') : '',
                 }),
+            [ DataActionType.COPY_PKM ]: () =>
+                t('storage.save-actions.type.copy-pkm', {
+                    pkmName: parameters[ 0 ],
+                    sourceSave: typeof parameters[ 1 ] === 'number' ? staticData.versions[ parameters[ 1 ] ?? -1 ]?.name : '',
+                    targetBoxName: parameters[ 2 ],
+                    targetBoxSlot: parameters[ 3 ],
+                }),
             [ DataActionType.DETACH_PKM_SAVE ]: () =>
                 t('storage.save-actions.type.detach', {
                     save: typeof parameters[ 0 ] === 'number' ? staticData.versions[ parameters[ 0 ] ?? -1 ]?.name : null,

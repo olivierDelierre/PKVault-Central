@@ -7,6 +7,7 @@ export const getActionColor = (type: DataActionType): NonNullable<BadgeProps[ 'c
         case DataActionType.UPDATE_EXTERNAL_PKM:
             return 'primary';
         case DataActionType.MOVE_PKM:
+        case DataActionType.COPY_PKM:
             return 'gray';
         case DataActionType.MAIN_CREATE_BANK:
         case DataActionType.MAIN_CREATE_BOX:
