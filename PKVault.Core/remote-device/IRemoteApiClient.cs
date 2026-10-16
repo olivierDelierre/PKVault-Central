@@ -9,9 +9,9 @@ public interface IRemoteApiClient
     public Task<RemotePingDTO> Ping(CancellationToken ct = default);
 
     /// <summary>Uploads the device save. Idempotent for a given device & save.</summary>
-    public Task<RemoteOpenSessionDTO> OpenSession(string deviceId, string fileName, byte[] saveBytes, CancellationToken ct = default);
+    public Task<RemoteOpenSessionResult> OpenSession(string deviceId, string fileName, byte[] saveBytes, CancellationToken ct = default);
 
-    public Task<DataDTO> CloseSession(string deviceId, uint saveId, CancellationToken ct = default);
+    public Task CloseSession(string deviceId, uint saveId, CancellationToken ct = default);
 
     /// <summary>Deliveries waiting for this device (READY only).</summary>
     public Task<List<RemoteTransferDTO>> GetTransfers(string deviceId, CancellationToken ct = default);
@@ -21,8 +21,14 @@ public interface IRemoteApiClient
     /// <summary>Idempotent.</summary>
     public Task<RemoteTransferDTO> Ack(string transferId, string newHash, CancellationToken ct = default);
 
-    public Task<DataDTO> Abort(string transferId, CancellationToken ct = default);
+    public Task Abort(string transferId, CancellationToken ct = default);
 }
+
+/// <summary>
+/// What the device needs from the server answer when opening a save
+/// (the server also sends the data to display, not used here: the UI reloads it).
+/// </summary>
+public record RemoteOpenSessionResult(uint SaveId, string OriginalHash);
 
 public record RemoteDownload(byte[] Bytes, string OriginalHash, string NewHash);
 

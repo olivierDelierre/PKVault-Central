@@ -88,7 +88,7 @@ public class FakeRemoteServer : IRemoteApiClient
     public Task<RemotePingDTO> Ping(CancellationToken ct = default)
         => Run("ping", () => new RemotePingDTO("test", seq));
 
-    public Task<RemoteOpenSessionDTO> OpenSession(string deviceId, string fileName, byte[] saveBytes, CancellationToken ct = default)
+    public Task<RemoteOpenSessionResult> OpenSession(string deviceId, string fileName, byte[] saveBytes, CancellationToken ct = default)
         => Run("open", () =>
         {
             if (SaveIdTakenByAnotherSource)
@@ -103,14 +103,14 @@ public class FakeRemoteServer : IRemoteApiClient
             }
 
             OpenSessions[SAVE_ID] = saveBytes.ToArray();
-            return new RemoteOpenSessionDTO(SAVE_ID, Hash(saveBytes), null!);
+            return new RemoteOpenSessionResult(SAVE_ID, Hash(saveBytes));
         });
 
-    public Task<DataDTO> CloseSession(string deviceId, uint saveId, CancellationToken ct = default)
+    public Task CloseSession(string deviceId, uint saveId, CancellationToken ct = default)
         => Run("close", () =>
         {
             OpenSessions.Remove(saveId);
-            return (DataDTO)null!;
+            return true;
         });
 
     public Task<List<RemoteTransferDTO>> GetTransfers(string deviceId, CancellationToken ct = default)
@@ -144,7 +144,7 @@ public class FakeRemoteServer : IRemoteApiClient
             return ToDTO(delivery);
         });
 
-    public Task<DataDTO> Abort(string transferId, CancellationToken ct = default)
+    public Task Abort(string transferId, CancellationToken ct = default)
         => Run("abort", () =>
         {
             var delivery = Deliveries.FirstOrDefault(d => d.Id == transferId)
@@ -158,7 +158,7 @@ public class FakeRemoteServer : IRemoteApiClient
             // like the backup restore: delivery gone, uploaded save loaded again
             Deliveries.Remove(delivery);
             OpenSessions[SAVE_ID] = delivery.OriginalBytes;
-            return (DataDTO)null!;
+            return true;
         });
 }
 
