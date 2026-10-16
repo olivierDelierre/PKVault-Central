@@ -273,6 +273,56 @@ namespace PKVault.Core.Migrations
                     b.ToTable("PkmVersions");
                 });
 
+            modelBuilder.Entity("PKVault.Core.RemoteTransferEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("AckedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("BackupCreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CommitSeq")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DeviceId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("NewBytes")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("NewHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OriginalHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<uint>("SaveId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("State")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SaveId", "State");
+
+                    b.ToTable("RemoteTransfers");
+                });
+
             modelBuilder.Entity("PKVault.Core.BoxEntity", b =>
                 {
                     b.HasOne("BankEntity", null)

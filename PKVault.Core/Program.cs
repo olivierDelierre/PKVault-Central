@@ -121,6 +121,7 @@ public class Program
 
         Log.Information($"Setup services - Loaders");
         services.AddScoped<IMetaLoader, MetaLoader>();
+        services.AddScoped<IRemoteSaveService, RemoteSaveService>();
         services.AddScoped<IBankLoader, BankLoader>();
         services.AddScoped<IBoxLoader, BoxLoader>();
         services.AddScoped<IPkmVariantLoader, PkmVariantLoader>();
@@ -161,6 +162,12 @@ public class Program
     public static async Task SetupData(IServiceProvider sp)
     {
         await SetupSampleSaveFile(sp);
+
+        // before saves loading
+        using (var scope = sp.CreateScope())
+        {
+            scope.ServiceProvider.GetRequiredService<IRemoteSaveService>().CleanupDeliveredFiles();
+        }
 
         var sessionService = sp.GetRequiredService<ISessionServiceMinimal>();
         await sessionService.EnsureSessionCreated();

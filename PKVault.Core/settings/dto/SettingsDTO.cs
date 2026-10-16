@@ -28,10 +28,15 @@ public record SettingsDTO(
     public static bool IsScriptsContext { get; set; }
 
     public string SavesUploadsPath => "./saves-uploads/";
+    public string RemoteSavesPath => "./remote-saves/";
 
     public string GetStoragePath() => NormalizeSafePath(SettingsMutable.STORAGE_PATH);
     public string GetDbPath() => NormalizeSafePath(SettingsMutable.DB_PATH);
     public string GetBackupPath() => NormalizeSafePath(SettingsMutable.BACKUP_PATH);
+    public string GetRemoteSavesPath() => NormalizeSafePath(RemoteSavesPath);
+
+    public bool IsUnderRemoteSavesPath(string path) => RemoteSavePath.IsUnderRoot(GetRemoteSavesPath(), path);
+    public bool IsRemoteSavePath(string path) => RemoteSavePath.TryParse(GetRemoteSavesPath(), path, out _, out _);
 
     public LanguageID GetSafeLanguageID()
     {

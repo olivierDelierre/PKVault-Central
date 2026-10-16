@@ -274,9 +274,15 @@ public class ActionService(
 
         Log.Information("SAVING IN PROGRESS");
 
-        await backupService.PrepareBackupThenRun("backup_before_save", flags, async () =>
+        await backupService.PrepareBackupThenRun("backup_before_save", flags, async backupTime =>
         {
             using var scope = sp.CreateScope();
+
+            var remoteSaveService = scope.ServiceProvider.GetService<IRemoteSaveService>();
+            if (remoteSaveService != null)
+            {
+                remoteSaveService.BackupCreatedAt = backupTime;
+            }
 
             await sessionService.PersistSession(scope);
         });

@@ -208,7 +208,17 @@ public class SessionService(
         var pkmFileLoader = scope.ServiceProvider.GetRequiredService<IPkmFileLoader>();
         await pkmFileLoader.WriteToFiles();
 
-        await savesLoadersService.WriteToFiles();
+        var hadActions = Actions.Count > 0;
+        var writtenSaves = await savesLoadersService.WriteToFiles();
+
+        // outbox: pending deliveries are recorded in the session DB, so they are committed
+        // with the bank by the DB move below, or not at all
+        var remoteSaveService = scope.ServiceProvider.GetService<IRemoteSaveService>();
+        if (remoteSaveService != null && (hadActions || writtenSaves.Any(w => w.IsRemote)))
+        {
+            await remoteSaveService.RecordCommit(writtenSaves);
+        }
+
         savesLoadersService.Clear();
 
         Actions.Clear();
@@ -218,6 +228,8 @@ public class SessionService(
 
         Log.Logger.Debug($"Move session DB to main");
         fileIOService.Move(SessionDbPath, MainDbPath, overwrite: true);
+
+        remoteSaveService?.DeleteDeliveredFiles(writtenSaves);
 
         StartTime = null;
     }

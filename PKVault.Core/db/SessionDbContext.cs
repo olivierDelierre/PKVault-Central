@@ -18,6 +18,7 @@ public class SessionDbContext(
     public DbSet<DexFormEntity> Pokedex { get; set; }
     public DbSet<PkmFileEntity> PkmFiles { get; set; }
     public DbSet<MetaEntity> Metas { get; set; }
+    public DbSet<RemoteTransferEntity> RemoteTransfers { get; set; }
 
     public DataUpdateFlagsState BanksFlags = new();
     public DataUpdateFlagsState BoxesFlags = new();
@@ -138,6 +139,13 @@ public class SessionDbContext(
         modelBuilder.Entity<MetaEntity>(entity =>
         {
             entity.HasKey(p => p.Key);
+        });
+
+        modelBuilder.Entity<RemoteTransferEntity>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+
+            entity.HasIndex(p => new { p.SaveId, p.State });
         });
     }
 

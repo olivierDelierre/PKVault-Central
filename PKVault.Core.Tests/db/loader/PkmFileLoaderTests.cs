@@ -52,7 +52,7 @@ public class PkmFileLoaderTests : IAsyncDisposable
     [Fact]
     public async Task WriteToFiles_ShouldAwaitEveryWrite_BeforeReturning()
     {
-        await db.Database.MigrateAsync();
+        await db.Database.MigrateAsync(TestContext.Current.CancellationToken);
 
         for (var i = 0; i < 5; i++)
         {
@@ -65,7 +65,7 @@ public class PkmFileLoaderTests : IAsyncDisposable
                 Deleted = false,
             });
         }
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         await pkmFileLoader.WriteToFiles();
 
@@ -76,7 +76,7 @@ public class PkmFileLoaderTests : IAsyncDisposable
     [Fact]
     public async Task WriteToFiles_ShouldPropagateWriteFailure()
     {
-        await db.Database.MigrateAsync();
+        await db.Database.MigrateAsync(TestContext.Current.CancellationToken);
 
         mockFileIO.Setup(x => x.WriteBytes(It.IsAny<string>(), It.IsAny<byte[]>()))
             .ThrowsAsync(new IOException("disk full"));
@@ -89,12 +89,12 @@ public class PkmFileLoaderTests : IAsyncDisposable
             Updated = true,
             Deleted = false,
         });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         await Assert.ThrowsAsync<IOException>(() => pkmFileLoader.WriteToFiles());
 
         // row must keep its pending state so nothing is silently lost
-        var row = await db.PkmFiles.SingleAsync();
+        var row = await db.PkmFiles.SingleAsync(TestContext.Current.CancellationToken);
         Assert.True(row.Updated);
         Assert.NotEmpty(row.Data);
     }
