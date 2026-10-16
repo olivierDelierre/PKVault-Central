@@ -153,10 +153,9 @@ The address to give to the app is `http(s)://<nas>:3000`.
 
 ## 4. Plain http and Android
 
-Android blocks plain `http://` addresses by default. For a NAS in your home network you have two ways:
+Android blocks plain `http://` addresses by default. On the branch `feat/remote-bank` the manifest allows them (`android:usesCleartextTraffic="true"` on `<application>`), so a NAS in the home network can be reached with `http://<nas>:<port>`. That is a deliberate choice for a personal fork, with a cost: the access token and the saves travel unencrypted, which is fine on a trusted home network and not on a public Wi-Fi.
 
-1. **https** (recommended, the token and your saves are then encrypted): a reverse proxy (Caddy, Traefik, Nginx Proxy Manager...) in front of the container, or a VPN such as Tailscale (`tailscale serve`).
-2. **Allow http for your test build.** In `PKVault.Mobile/Platforms/Android/AndroidManifest.xml`, add `android:usesCleartextTraffic="true"` to the `<application>` element. This is NOT done in the repository: it would apply to every user of the app, and it is a security decision for you to take. If you do it for tests, do not commit it.
+Because it applies to the whole app, it should not be merged into a build meant for other users. To go back to https only, remove that attribute, and put the server behind **https**: a reverse proxy (Caddy, Traefik, Nginx Proxy Manager...) in front of the container, or a VPN such as Tailscale (`tailscale serve`).
 
 The settings screen warns when the address is plain http and a token is used.
 
