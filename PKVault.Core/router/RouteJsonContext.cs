@@ -25,6 +25,10 @@ namespace PKVault.Core;
 [JsonSerializable(typeof(Dictionary<string, PkmLegalityDTO>))]
 [JsonSerializable(typeof(BankEntity.BankView))]
 [JsonSerializable(typeof(BankEntity.BankViewSave))]
+[JsonSerializable(typeof(RemotePingDTO))]
+[JsonSerializable(typeof(RemoteOpenSessionDTO))]
+[JsonSerializable(typeof(RemoteTransferDTO))]
+[JsonSerializable(typeof(List<RemoteTransferDTO>))]
 
 // [JsonSerializable(typeof(EditPkmVariantPayload))]
 [JsonSerializable(typeof(DeletePkmVariantActionInput))]

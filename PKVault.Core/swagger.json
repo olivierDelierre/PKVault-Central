@@ -300,6 +300,261 @@
         }
       }
     },
+    "/api/remote/ping": {
+      "get": {
+        "tags": [
+          "Remote"
+        ],
+        "operationId": "Remote_Ping",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemotePingDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/remote/session/close": {
+      "post": {
+        "tags": [
+          "Remote"
+        ],
+        "operationId": "Remote_CloseSession",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "saveId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/remote/session/open": {
+      "post": {
+        "tags": [
+          "Remote"
+        ],
+        "operationId": "Remote_OpenSession",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "fileName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 3
+          }
+        ],
+        "requestBody": {
+          "x-name": "saveFile",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "saveFile": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoteOpenSessionDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/remote/transfers": {
+      "get": {
+        "tags": [
+          "Remote"
+        ],
+        "operationId": "Remote_GetTransfers",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RemoteTransferDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/remote/transfers/{id}/abort": {
+      "post": {
+        "tags": [
+          "Remote"
+        ],
+        "operationId": "Remote_Abort",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/remote/transfers/{id}/ack": {
+      "post": {
+        "tags": [
+          "Remote"
+        ],
+        "operationId": "Remote_Ack",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "newHash",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoteTransferDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/remote/transfers/{id}/download": {
+      "get": {
+        "tags": [
+          "Remote"
+        ],
+        "operationId": "Remote_Download",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/save-infos": {
       "get": {
         "tags": [
@@ -4639,6 +4894,90 @@
             "items": {
               "type": "integer"
             }
+          }
+        }
+      },
+      "RemotePingDTO": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "version",
+          "commitSeq"
+        ],
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "commitSeq": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "RemoteOpenSessionDTO": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "saveId",
+          "originalHash",
+          "data"
+        ],
+        "properties": {
+          "saveId": {
+            "type": "integer"
+          },
+          "originalHash": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DataDTO"
+          }
+        }
+      },
+      "RemoteTransferDTO": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "saveId",
+          "fileName",
+          "originalHash",
+          "newHash",
+          "size",
+          "commitSeq",
+          "createdAt",
+          "state"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "saveId": {
+            "type": "integer"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "originalHash": {
+            "type": "string"
+          },
+          "newHash": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "commitSeq": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "state": {
+            "type": "string"
           }
         }
       },

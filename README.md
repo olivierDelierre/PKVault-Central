@@ -124,6 +124,7 @@ services:
     environment:
       - LOG_FILE_COUNT_LIMIT=10     # removes extra log files, default: 10
       - BACKUP_FILE_COUNT_LIMIT=30  # removes extra backup files, default: no limit
+      - PKVAULT_API_TOKEN=change-me # optional, requires this token for every /api request, see below
     volumes:
       - ./path/to/pkvault/data:/pkvault
 
@@ -143,6 +144,17 @@ services:
 >   - /data/external-pkms/ (or any subpath)
 
 Perfect for homelab context.
+
+### Access token
+
+If the server is reachable from outside your local network, set `PKVAULT_API_TOKEN` to a long random value.
+Every `/api` request must then send `Authorization: Bearer <token>`.
+The web UI asks for the token on the first request and keeps it in the browser (per server).
+
+> The token is sent as-is: expose the server through HTTPS (reverse proxy) or a VPN.
+> Game sprites (`GET /api/static-data/spritesheet/*`) stay public, nothing about your data is in there.
+
+Without this variable, the server stays open as before.
 
 Or using basic docker run:
 

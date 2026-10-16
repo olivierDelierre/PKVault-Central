@@ -7,6 +7,10 @@ services:
     container_name: pkvault
     ports:
       - "3000:3000"
+    # environment:
+    #   # optional: requires "Authorization: Bearer <token>" for every /api request,
+    #   # use it with HTTPS or a VPN when reachable from outside your network
+    #   - PKVAULT_API_TOKEN=change-me
     volumes:
       - ./pkvault-data:/pkvault
 

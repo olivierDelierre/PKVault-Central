@@ -208,7 +208,7 @@ public class SavesLoadersService(
             // remote saves are only loaded through their dedicated folder
             // (a broad user glob could match them too)
             .Where(path => !settings.IsUnderRemoteSavesPath(path))
-            .Concat(fileIOService.Matcher.SearchPaths([settings.RemoteSavesPath + "**"]))
+            .Concat(fileIOService.Matcher.SearchPaths([SettingsDTO.RemoteSavesPath + "**"]))
             .Distinct();
 
         var evolves = await staticDataService.GetStaticEvolves();

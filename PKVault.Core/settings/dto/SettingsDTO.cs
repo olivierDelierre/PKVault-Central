@@ -28,7 +28,8 @@ public record SettingsDTO(
     public static bool IsScriptsContext { get; set; }
 
     public string SavesUploadsPath => "./saves-uploads/";
-    public string RemoteSavesPath => "./remote-saves/";
+    // const: not serialized, unlike SavesUploadsPath (no API contract change)
+    public const string RemoteSavesPath = "./remote-saves/";
 
     public string GetStoragePath() => NormalizeSafePath(SettingsMutable.STORAGE_PATH);
     public string GetDbPath() => NormalizeSafePath(SettingsMutable.DB_PATH);

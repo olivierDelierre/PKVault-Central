@@ -2,7 +2,7 @@ import { Badge, Button, Card, Divider, EmptyState, Group, Tooltip } from '@manti
 import { DownloadIcon, FolderIcon, FolderSearchIcon, PackageOpenIcon, TrashIcon, TriangleAlertIcon } from 'lucide-react';
 import type React from "react";
 import { HistoryContext } from '../context/history-context';
-import { getApiFullUrl } from '../data/mutator/custom-instance';
+import { downloadWithAuth, getApiFullUrl, hasStoredApiToken } from '../data/mutator/custom-instance';
 import { DesktopMessageType } from '../data/sdk/model';
 import { getSaveInfosDownloadUrl, useSaveInfosDelete, useSaveInfosGetAll } from '../data/sdk/save-infos/save-infos.gen';
 import { useSettingsGet } from '../data/sdk/settings/settings.gen';
@@ -143,6 +143,13 @@ export const SavesPage: React.FC = withErrorCatcher('default', () => {
                           target='__blank'
                           type='button'
                           href={getApiFullUrl(getSaveInfosDownloadUrl(save.id))}
+                          onClick={hasStoredApiToken()
+                            // a link cannot send the API token
+                            ? (event: React.MouseEvent) => {
+                              event.preventDefault();
+                              downloadWithAuth(getSaveInfosDownloadUrl(save.id)).catch(console.error);
+                            }
+                            : undefined}
                         >
                           <DownloadIcon />
                         </Button>
